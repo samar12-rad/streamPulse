@@ -1,8 +1,10 @@
+/* Full-bleed, full-height layout: the dashboard uses the whole window like a monitoring screen. */
 .app {
-  max-width: 1440px;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  padding: 18px 24px 32px;
-  margin: 0 auto;
+  min-height: 100dvh;
+  padding: 18px 24px 24px;
 }
 
 @media (max-width: 1023px) {
@@ -49,19 +51,27 @@
 }
 
 .main {
-  display: grid;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   gap: 16px;
 }
 
-/* Chart and table side by side on wide screens, stacked below ~1100px so neither gets cramped. */
+/*
+ * Chart and table side by side on wide screens, growing to fill the remaining
+ * height. Below ~1100px they stack at their natural height instead, so the
+ * chart doesn't become a very tall strip.
+ */
 .panels {
   display: grid;
+  flex: 1;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   gap: 16px;
 }
 
 @media (max-width: 1099px) {
   .panels {
+    flex: none;
     grid-template-columns: minmax(0, 1fr);
   }
 }

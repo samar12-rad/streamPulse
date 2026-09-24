@@ -87,72 +87,74 @@ export function TimeSeriesChart({ data, metric, groupBy, timeRange }: TimeSeries
         role="img"
         aria-label={`Line chart of ${METRIC_LABEL[metric]} over time for ${series.map((s) => s.label).join(", ")}`}
       >
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid vertical={false} stroke={chrome.grid} />
-            {partialAreas.map((area) => (
-              <ReferenceArea
-                key={area.x1}
-                x1={area.x1}
-                x2={area.x2}
-                fill={chrome.partial}
-                fillOpacity={1}
-                strokeOpacity={0}
-                label={{ value: "partial", position: "insideTop", fill: chrome.axis, fontSize: 10 }}
-                ifOverflow="hidden"
+        <div className={styles.chartInner}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+              <CartesianGrid vertical={false} stroke={chrome.grid} />
+              {partialAreas.map((area) => (
+                <ReferenceArea
+                  key={area.x1}
+                  x1={area.x1}
+                  x2={area.x2}
+                  fill={chrome.partial}
+                  fillOpacity={1}
+                  strokeOpacity={0}
+                  label={{ value: "partial", position: "insideTop", fill: chrome.axis, fontSize: 10 }}
+                  ifOverflow="hidden"
+                />
+              ))}
+              <XAxis
+                dataKey="ts"
+                type="number"
+                scale="time"
+                domain={["dataMin", "dataMax"]}
+                ticks={ticks}
+                tickFormatter={(ts: number) => formatTick(ts, data.granularitySec, spanSec)}
+                tick={{ fill: chrome.axis, fontSize: 11 }}
+                tickLine={false}
+                axisLine={{ stroke: chrome.grid }}
+                minTickGap={24}
               />
-            ))}
-            <XAxis
-              dataKey="ts"
-              type="number"
-              scale="time"
-              domain={["dataMin", "dataMax"]}
-              ticks={ticks}
-              tickFormatter={(ts: number) => formatTick(ts, data.granularitySec, spanSec)}
-              tick={{ fill: chrome.axis, fontSize: 11 }}
-              tickLine={false}
-              axisLine={{ stroke: chrome.grid }}
-              minTickGap={24}
-            />
-            <YAxis
-              width={68}
-              domain={[0, "auto"]}
-              tickFormatter={(value: number) => formatMetric(metric, value, { short: true })}
-              tick={{ fill: chrome.axis, fontSize: 11 }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              cursor={{ stroke: chrome.cursor }}
-              isAnimationActive={false}
-              content={({ active, label }) =>
-                active && typeof label === "number" ? (
-                  <ChartTooltip
-                    row={rowsByTs.get(label)}
-                    granularitySec={data.granularitySec}
-                    timeRange={timeRange}
-                    metric={metric}
-                    series={series.filter((s) => !hidden.has(s.name))}
-                  />
-                ) : null
-              }
-            />
-            {series.map((s) => (
-              <Line
-                key={s.name}
-                type="monotone"
-                name={s.label}
-                dataKey={(row: ChartRow) => row.values[s.name]}
-                stroke={s.color}
-                strokeWidth={1.75}
-                dot={false}
-                activeDot={{ r: 3.5, strokeWidth: 0 }}
-                hide={hidden.has(s.name)}
+              <YAxis
+                width={68}
+                domain={[0, "auto"]}
+                tickFormatter={(value: number) => formatMetric(metric, value, { short: true })}
+                tick={{ fill: chrome.axis, fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip
+                cursor={{ stroke: chrome.cursor }}
                 isAnimationActive={false}
+                content={({ active, label }) =>
+                  active && typeof label === "number" ? (
+                    <ChartTooltip
+                      row={rowsByTs.get(label)}
+                      granularitySec={data.granularitySec}
+                      timeRange={timeRange}
+                      metric={metric}
+                      series={series.filter((s) => !hidden.has(s.name))}
+                    />
+                  ) : null
+                }
               />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
+              {series.map((s) => (
+                <Line
+                  key={s.name}
+                  type="monotone"
+                  name={s.label}
+                  dataKey={(row: ChartRow) => row.values[s.name]}
+                  stroke={s.color}
+                  strokeWidth={1.75}
+                  dot={false}
+                  activeDot={{ r: 3.5, strokeWidth: 0 }}
+                  hide={hidden.has(s.name)}
+                  isAnimationActive={false}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

@@ -63,6 +63,12 @@
   min-height: 290px;
 }
 
+/* Absolutely positioned so the chart fills the flex-grown area without feeding its own size back into layout. */
+.chart-inner {
+  position: absolute;
+  inset: 0;
+}
+
 .tooltip {
   min-width: 190px;
   padding: 10px 12px;
