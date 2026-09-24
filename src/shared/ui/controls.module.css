@@ -1,0 +1,151 @@
+.control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.control:hover {
+  border-color: var(--border-strong);
+}
+
+.control:focus-within {
+  box-shadow: var(--focus-ring);
+}
+
+.control[data-active] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.prefix {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.value {
+  max-width: 140px;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* The native select stretches over the whole control so the chevron and prefix stay clickable. */
+.native-select {
+  appearance: none;
+  padding: 0 18px 0 0;
+  margin-right: -18px;
+  border: 0;
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.native-select:focus {
+  outline: none;
+}
+
+.native-select option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.multi-select {
+  position: relative;
+}
+
+.popover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover,
+.option:focus-within {
+  background: var(--surface-hover);
+}
+
+.checkbox {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  color: var(--accent-contrast);
+}
+
+.checkbox[data-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.button:disabled {
+  opacity: 0.5;
+}
+
+.icon-button {
+  composes: button;
+  justify-content: center;
+  width: 32px;
+  padding: 0;
+}
