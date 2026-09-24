@@ -1,0 +1,127 @@
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 330px;
+  transition: opacity 0.15s ease;
+}
+
+.body[data-stale] {
+  opacity: 0.55;
+}
+
+.chart-wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.legend-item[aria-pressed="false"] {
+  color: var(--text-subtle);
+  text-decoration: line-through;
+}
+
+.legend-item:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.legend-item:disabled {
+  cursor: default;
+}
+
+.swatch {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border: 2px solid;
+  border-radius: 3px;
+}
+
+.chart {
+  position: relative;
+  flex: 1;
+  min-height: 290px;
+}
+
+.tooltip {
+  min-width: 190px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  font-size: 12px;
+}
+
+.tooltip-title {
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.tooltip-note {
+  margin: -2px 0 6px;
+  color: var(--warning);
+  font-size: 11px;
+}
+
+.tooltip-list {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tooltip-name {
+  flex: 1;
+}
+
+.tooltip-value {
+  font-weight: 650;
+}
+
+.skeleton {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeleton-bars {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  gap: 14px;
+  min-height: 260px;
+}
+
+.skeleton-bar {
+  flex: 1;
+}
