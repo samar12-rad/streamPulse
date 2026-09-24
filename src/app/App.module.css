@@ -1,0 +1,67 @@
+.app {
+  max-width: 1440px;
+  min-height: 100vh;
+  padding: 18px 24px 32px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1023px) {
+  .app {
+    padding: 14px 16px 24px;
+  }
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding-bottom: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #4f46e5, #2563eb);
+  color: #fff;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.main {
+  display: grid;
+  gap: 16px;
+}
+
+/* Chart and table side by side on wide screens, stacked below ~1100px so neither gets cramped. */
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1099px) {
+  .panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
