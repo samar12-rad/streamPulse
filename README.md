@@ -3,6 +3,8 @@
 A dashboard for a video streaming service that helps an engineer see **what went wrong and who was affected**.
 Built with React 18, TypeScript (strict) and Vite, on top of the provided mock API (unmodified, failure rate intact).
 
+**Live demo: https://stream-pulse-one.vercel.app/**
+
 ## Setup
 
 ```bash
@@ -20,7 +22,7 @@ Requires Node 20+.
 
 ## Incident investigation
 
-> **The dashboard finds it for you.** On load, an anomaly banner names the slice (**SmartTV × Fastly**), the window, the plays affected and the change in every quality metric. **Investigate** applies the filters that show the evidence, and **Zoom to incident** opens it in hourly detail. The same window is shaded on the chart. You can also open **[`/?device=SmartTV&groupBy=cdn&breakdown=cdn`](http://localhost:5173/?device=SmartTV&groupBy=cdn&breakdown=cdn)**.
+> **The dashboard finds it for you.** On load, an anomaly banner names the slice (**SmartTV × Fastly**), the window, the plays affected and the change in every quality metric. **Investigate** applies the filters that show the evidence, and **Zoom to incident** opens it in hourly detail. The same window is shaded on the chart. You can also open the evidence view directly: **[live](https://stream-pulse-one.vercel.app/?device=SmartTV&groupBy=cdn&breakdown=cdn)** · [local](http://localhost:5173/?device=SmartTV&groupBy=cdn&breakdown=cdn).
 
 | | Finding |
 | --- | --- |
