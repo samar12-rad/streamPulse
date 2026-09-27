@@ -149,3 +149,9 @@
   width: 32px;
   padding: 0;
 }
+
+.button[data-active] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}

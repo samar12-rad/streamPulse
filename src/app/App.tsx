@@ -1,7 +1,9 @@
+import { AnomalyBanner } from "../features/anomaly/AnomalyBanner";
 import { BreakdownPanel } from "../features/breakdown/BreakdownPanel";
 import { ActiveFilters } from "../features/filters/ActiveFilters";
 import { FilterBar } from "../features/filters/FilterBar";
 import { MetricCards } from "../features/summary/MetricCards";
+import { KeyboardShortcuts } from "../features/shortcuts/KeyboardShortcuts";
 import { ThemeToggle } from "../features/theme/ThemeToggle";
 import { TimeSeriesPanel } from "../features/timeseries/TimeSeriesPanel";
 import styles from "./App.module.css";
@@ -20,12 +22,14 @@ export function App() {
         </div>
         <div className={styles.toolbar}>
           <FilterBar />
+          <KeyboardShortcuts />
           <ThemeToggle />
         </div>
       </header>
 
       <main className={styles.main}>
         <ActiveFilters />
+        <AnomalyBanner />
         <MetricCards />
         <div className={styles.panels}>
           <TimeSeriesPanel />

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bucketCoverageSec, isPartialBucket, pickTicks, seriesColor, toChartRows } from "./chartData";
+import { bucketCoverageSec, dragToRange, isPartialBucket, pickTicks, seriesColor, toChartRows, withPrevious } from "./chartData";
 
 describe("toChartRows", () => {
   it("pivots series into one row per timestamp, sorted, leaving gaps for missing points", () => {
@@ -47,5 +47,38 @@ describe("seriesColor", () => {
     const later = seriesColor("light", "cdn", "Fastly", 2);
     expect(first).toBe(later);
     expect(seriesColor("light", "cdn", "Akamai", 0)).not.toBe(first);
+  });
+});
+
+describe("withPrevious", () => {
+  const H = 3600;
+  const rows = toChartRows([{ name: "All", points: [0, 3, 6].map((h) => ({ ts: h * H, value: 1 })) }]);
+
+  it("shifts the previous period onto the current buckets", () => {
+    const previous = [{ name: "All", points: [-9, -6, -3].map((h) => ({ ts: h * H, value: h })) }];
+    const merged = withPrevious(rows, previous, 9 * H, 3 * H);
+    expect(merged.map((r) => r.previous?.All)).toEqual([-9, -6, -3]);
+    expect(merged.map((r) => r.values.All)).toEqual([1, 1, 1]);
+  });
+
+  it("snaps to the nearest bucket when the range isn't a whole number of buckets", () => {
+    const previous = [{ name: "All", points: [{ ts: -10 * H, value: 7 }] }];
+    expect(withPrevious(rows, previous, 13 * H, 3 * H)[1]?.previous?.All).toBe(7);
+  });
+
+  it("drops points that fall outside the current rows", () => {
+    const previous = [{ name: "All", points: [{ ts: -30 * H, value: 7 }] }];
+    expect(withPrevious(rows, previous, 9 * H, 3 * H).every((r) => r.previous?.All === undefined)).toBe(true);
+  });
+});
+
+describe("dragToRange", () => {
+  it("covers both end buckets whole, in either drag direction", () => {
+    expect(dragToRange(600, 200, 100)).toEqual({ from: 200, to: 700 });
+    expect(dragToRange(200, 600, 100)).toEqual({ from: 200, to: 700 });
+  });
+
+  it("treats a click without a drag as no zoom", () => {
+    expect(dragToRange(200, 200, 100)).toBeNull();
   });
 });

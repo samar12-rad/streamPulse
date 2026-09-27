@@ -131,3 +131,48 @@
 .skeleton-bar {
   flex: 1;
 }
+
+/* Recharts makes the plot focusable for keyboard tooltips; only show that ring for keyboard focus. */
+.chart-inner :focus:not(:focus-visible) {
+  outline: none;
+}
+
+.chart[data-zoomable] {
+  cursor: crosshair;
+  user-select: none;
+}
+
+.legend-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.dash-swatch {
+  width: 16px;
+  border-top: 2px dashed currentColor;
+}
+
+.tooltip-previous {
+  min-width: 64px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.compare-note {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+}

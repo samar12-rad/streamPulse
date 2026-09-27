@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDebouncedCallback } from "../../shared/lib/useDebouncedCallback";
 import { CloseIcon, SearchIcon } from "../../shared/ui/icons";
+import { SEARCH_SHORTCUT_TARGET } from "../shortcuts/shortcuts";
 import styles from "./breakdown.module.css";
 
 export const SEARCH_DEBOUNCE_MS = 300;
@@ -45,9 +46,11 @@ export function BreakdownSearch({ value, placeholder, onCommit }: BreakdownSearc
       <input
         type="search"
         className={styles.searchInput}
+        data-shortcut={SEARCH_SHORTCUT_TARGET}
         value={draft}
         placeholder={placeholder}
         aria-label={placeholder}
+        aria-keyshortcuts="/"
         onChange={(event) => update(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter") commitNow(draft);
@@ -57,6 +60,11 @@ export function BreakdownSearch({ value, placeholder, onCommit }: BreakdownSearc
           }
         }}
       />
+      {!draft && (
+        <kbd className={styles.searchKbd} aria-hidden="true">
+          /
+        </kbd>
+      )}
       {draft && (
         <button type="button" className={styles.searchClear} onClick={() => commitNow("")} aria-label="Clear search">
           <CloseIcon width={12} height={12} />

@@ -100,3 +100,27 @@ export const FilterIcon = (p: IconProps) => (
     <path d="M3 5h18l-7 8v6l-4 2v-8Z" />
   </Icon>
 );
+export const ZoomInIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m21 21-4.3-4.3M11 8v6M8 11h6" />
+  </Icon>
+);
+export const CheckCircleIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8.5 12.5 2.5 2.5 4.5-5" />
+  </Icon>
+);
+export const KeyboardIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="2" y="6" width="20" height="12" rx="2" />
+    <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" />
+  </Icon>
+);
+export const CompareIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 17c3-6 6-9 9-5s6 1 9-5" />
+    <path d="M3 20c3-4 6-6 9-3s6 0 9-3" strokeDasharray="2 3" />
+  </Icon>
+);

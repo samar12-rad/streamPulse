@@ -5,6 +5,8 @@ export interface ChartRow {
   ts: number;
   /** Value per series name; a missing key renders as a gap rather than a misleading zero. */
   values: Record<string, number | undefined>;
+  /** Same series in the previous period, shifted onto this row's timestamp. */
+  previous?: Record<string, number | undefined>;
 }
 
 /** Pivots the API's series-of-points shape into the row-per-timestamp shape charts expect. */
@@ -21,6 +23,34 @@ export function toChartRows(series: readonly TimeSeries[]): ChartRow[] {
     }
   }
   return [...byTs.values()].sort((a, b) => a.ts - b.ts);
+}
+
+/**
+ * Lays the previous period's series over the current rows: every point moves
+ * forward by `offsetSec` (the range length) and snaps to the nearest bucket,
+ * since a custom range's length isn't always a whole number of buckets.
+ * Points that land outside the current rows are dropped.
+ */
+export function withPrevious(
+  rows: readonly ChartRow[],
+  previous: readonly TimeSeries[],
+  offsetSec: number,
+  granularitySec: number
+): ChartRow[] {
+  const byTs = new Map(rows.map((row) => [row.ts, { ...row, previous: {} as Record<string, number | undefined> }]));
+  for (const { name, points } of previous) {
+    for (const { ts, value } of points) {
+      const row = byTs.get(Math.round((ts + offsetSec) / granularitySec) * granularitySec);
+      if (row) row.previous[name] = value;
+    }
+  }
+  return [...byTs.values()];
+}
+
+/** Turns a drag between two bucket timestamps into a zoom range covering both buckets whole. */
+export function dragToRange(a: number, b: number, granularitySec: number): TimeRange | null {
+  if (a === b) return null;
+  return { from: Math.min(a, b), to: Math.max(a, b) + granularitySec };
 }
 
 export function hasAnyPoints(series: readonly TimeSeries[]): boolean {
@@ -59,9 +89,35 @@ const PALETTE: Record<Theme, readonly string[]> = {
   dark: ["#5b8cff", "#f472b6", "#2dd4bf", "#fb923c", "#a78bfa", "#facc15"],
 };
 
-export const CHART_CHROME: Record<Theme, { grid: string; axis: string; cursor: string; partial: string }> = {
-  light: { grid: "#e8ecf2", axis: "#8a98ad", cursor: "#cfd7e3", partial: "rgba(138, 152, 173, 0.12)" },
-  dark: { grid: "#1f2b42", axis: "#6b7a93", cursor: "#2e3e5c", partial: "rgba(107, 122, 147, 0.14)" },
+interface Chrome {
+  grid: string;
+  axis: string;
+  cursor: string;
+  partial: string;
+  anomaly: string;
+  anomalyText: string;
+  selection: string;
+}
+
+export const CHART_CHROME: Record<Theme, Chrome> = {
+  light: {
+    grid: "#e8ecf2",
+    axis: "#8a98ad",
+    cursor: "#cfd7e3",
+    partial: "rgba(138, 152, 173, 0.12)",
+    anomaly: "rgba(217, 119, 6, 0.14)",
+    anomalyText: "#b45309",
+    selection: "rgba(37, 99, 235, 0.14)",
+  },
+  dark: {
+    grid: "#1f2b42",
+    axis: "#6b7a93",
+    cursor: "#2e3e5c",
+    partial: "rgba(107, 122, 147, 0.14)",
+    anomaly: "rgba(251, 191, 36, 0.16)",
+    anomalyText: "#fbbf24",
+    selection: "rgba(91, 140, 255, 0.2)",
+  },
 };
 
 const DIMENSION_VALUES: Record<DimensionKey, readonly string[]> = {

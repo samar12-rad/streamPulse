@@ -1,17 +1,53 @@
 import { useMemo, useState } from "react";
+import type { MouseHandlerDataParam } from "recharts";
 import { CartesianGrid, Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { DimensionKey, MetricKey, TimeRange, TimeSeriesResponse } from "../../api/types";
 import { formatBucket, formatMetric, formatTick, METRIC_LABEL } from "../../shared/lib/format";
 import { formatDimensionValue } from "../dashboard/labels";
 import { useTheme } from "../theme/themeStore";
-import { bucketCoverageSec, CHART_CHROME, isPartialBucket, pickTicks, seriesColor, toChartRows, type ChartRow } from "./chartData";
+import {
+  bucketCoverageSec,
+  CHART_CHROME,
+  dragToRange,
+  isPartialBucket,
+  pickTicks,
+  seriesColor,
+  toChartRows,
+  withPrevious,
+  type ChartRow,
+} from "./chartData";
 import styles from "./timeseries.module.css";
+
+export interface ComparisonData {
+  /** The previous period's series, or undefined while it loads or if it failed. */
+  data: TimeSeriesResponse | undefined;
+  /** How far to shift the previous period forward — the range's length. */
+  offsetSec: number;
+}
+
+export interface HighlightWindow {
+  window: TimeRange;
+  label: string;
+}
 
 interface TimeSeriesChartProps {
   data: TimeSeriesResponse;
   metric: MetricKey;
   groupBy: DimensionKey | null;
   timeRange: TimeRange;
+  comparison?: ComparisonData;
+  /** Shaded band, e.g. a detected anomaly. */
+  highlight?: HighlightWindow;
+  /** Called with the dragged-over window; the chart zooms nothing by itself. */
+  onZoom?: (range: TimeRange) => void;
+}
+
+/** The bucket timestamp under the pointer, from recharts' mouse-handler payload. */
+function pointerTs(state: MouseHandlerDataParam, rows: readonly ChartRow[]): number | null {
+  const label = Number(state.activeLabel);
+  if (Number.isFinite(label)) return label;
+  const index = Number(state.activeTooltipIndex);
+  return Number.isInteger(index) ? (rows[index]?.ts ?? null) : null;
 }
 
 interface SeriesView {
@@ -20,12 +56,18 @@ interface SeriesView {
   color: string;
 }
 
-export function TimeSeriesChart({ data, metric, groupBy, timeRange }: TimeSeriesChartProps) {
+export function TimeSeriesChart({ data, metric, groupBy, timeRange, comparison, highlight, onZoom }: TimeSeriesChartProps) {
   const { theme } = useTheme();
   const chrome = CHART_CHROME[theme];
   const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
+  const [drag, setDrag] = useState<{ start: number; end: number } | null>(null);
 
-  const rows = useMemo(() => toChartRows(data.series), [data.series]);
+  const previous = comparison?.data;
+  const offsetSec = comparison?.offsetSec ?? 0;
+  const rows = useMemo(() => {
+    const current = toChartRows(data.series);
+    return previous ? withPrevious(current, previous.series, offsetSec, data.granularitySec) : current;
+  }, [data.series, data.granularitySec, previous, offsetSec]);
   const rowsByTs = useMemo(() => new Map(rows.map((row) => [row.ts, row])), [rows]);
   const ticks = useMemo(() => pickTicks(rows, 7), [rows]);
 
@@ -61,6 +103,18 @@ export function TimeSeriesChart({ data, metric, groupBy, timeRange }: TimeSeries
       return next;
     });
 
+  // Clamp the highlight to the plotted domain; skip it if it's entirely outside.
+  const band =
+    highlight && highlight.window.to > first && highlight.window.from <= last
+      ? { x1: Math.max(highlight.window.from, first), x2: Math.min(highlight.window.to, last), label: highlight.label }
+      : null;
+
+  const finishDrag = () => {
+    const range = drag ? dragToRange(drag.start, drag.end, data.granularitySec) : null;
+    setDrag(null);
+    if (range && onZoom) onZoom(range);
+  };
+
   return (
     <div className={styles.chartWrap}>
       <div className={styles.legend} role="group" aria-label="Series — click to show or hide">
@@ -80,17 +134,52 @@ export function TimeSeriesChart({ data, metric, groupBy, timeRange }: TimeSeries
             </button>
           );
         })}
+        {comparison && (
+          <span className={styles.legendNote}>
+            <span className={styles.dashSwatch} aria-hidden="true" />
+            Previous period
+          </span>
+        )}
       </div>
 
       <div
         className={styles.chart}
+        data-zoomable={onZoom ? true : undefined}
         role="img"
-        aria-label={`Line chart of ${METRIC_LABEL[metric]} over time for ${series.map((s) => s.label).join(", ")}`}
+        aria-label={`Line chart of ${METRIC_LABEL[metric]} over time for ${series.map((s) => s.label).join(", ")}${
+          band ? `, with an anomaly highlighted: ${band.label}` : ""
+        }`}
       >
         <div className={styles.chartInner}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+            <LineChart
+              data={rows}
+              margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
+              onMouseDown={(state) => {
+                const ts = onZoom ? pointerTs(state, rows) : null;
+                if (ts !== null) setDrag({ start: ts, end: ts });
+              }}
+              onMouseMove={(state) => {
+                const ts = drag ? pointerTs(state, rows) : null;
+                if (drag && ts !== null && ts !== drag.end) setDrag({ ...drag, end: ts });
+              }}
+              onMouseUp={finishDrag}
+              onMouseLeave={() => setDrag(null)}
+            >
               <CartesianGrid vertical={false} stroke={chrome.grid} />
+              {band && (
+                <ReferenceArea
+                  x1={band.x1}
+                  x2={band.x2}
+                  fill={chrome.anomaly}
+                  fillOpacity={1}
+                  stroke={chrome.anomalyText}
+                  strokeOpacity={0.35}
+                  strokeDasharray="3 3"
+                  label={{ value: band.label, position: "insideTopLeft", fill: chrome.anomalyText, fontSize: 10, fontWeight: 600 }}
+                  ifOverflow="hidden"
+                />
+              )}
               {partialAreas.map((area) => (
                 <ReferenceArea
                   key={area.x1}
@@ -134,6 +223,7 @@ export function TimeSeriesChart({ data, metric, groupBy, timeRange }: TimeSeries
                       timeRange={timeRange}
                       metric={metric}
                       series={series.filter((s) => !hidden.has(s.name))}
+                      showPrevious={comparison !== undefined}
                     />
                   ) : null
                 }
@@ -152,6 +242,32 @@ export function TimeSeriesChart({ data, metric, groupBy, timeRange }: TimeSeries
                   isAnimationActive={false}
                 />
               ))}
+              {previous &&
+                series.map((s) => (
+                  <Line
+                    key={`previous:${s.name}`}
+                    type="monotone"
+                    name={`${s.label} (previous period)`}
+                    dataKey={(row: ChartRow) => row.previous?.[s.name]}
+                    stroke={s.color}
+                    strokeOpacity={0.5}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={false}
+                    activeDot={false}
+                    hide={hidden.has(s.name)}
+                    isAnimationActive={false}
+                  />
+                ))}
+              {drag && drag.start !== drag.end && (
+                <ReferenceArea
+                  x1={Math.min(drag.start, drag.end)}
+                  x2={Math.max(drag.start, drag.end)}
+                  fill={chrome.selection}
+                  fillOpacity={1}
+                  strokeOpacity={0}
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -166,15 +282,16 @@ interface ChartTooltipProps {
   timeRange: TimeRange;
   metric: MetricKey;
   series: readonly SeriesView[];
+  showPrevious: boolean;
 }
 
-function ChartTooltip({ row, granularitySec, timeRange, metric, series }: ChartTooltipProps) {
+function ChartTooltip({ row, granularitySec, timeRange, metric, series, showPrevious }: ChartTooltipProps) {
   if (!row) return null;
   const coveredSec = bucketCoverageSec(row.ts, granularitySec, timeRange);
   // Highest value first, so the worst (or best) offender is on top.
   const entries = series
-    .map((s) => ({ ...s, value: row.values[s.name] }))
-    .filter((e): e is SeriesView & { value: number } => e.value !== undefined)
+    .map((s) => ({ ...s, value: row.values[s.name], previous: row.previous?.[s.name] }))
+    .filter((e): e is SeriesView & { value: number; previous: number | undefined } => e.value !== undefined)
     .sort((a, b) => b.value - a.value);
 
   return (
@@ -191,6 +308,11 @@ function ChartTooltip({ row, granularitySec, timeRange, metric, series }: ChartT
             <span className={styles.swatch} style={{ background: entry.color, borderColor: entry.color }} />
             <span className={styles.tooltipName}>{entry.label}</span>
             <span className={styles.tooltipValue}>{formatMetric(metric, entry.value)}</span>
+            {showPrevious && (
+              <span className={styles.tooltipPrevious}>
+                prev {entry.previous === undefined ? "—" : formatMetric(metric, entry.previous)}
+              </span>
+            )}
           </li>
         ))}
       </ul>
