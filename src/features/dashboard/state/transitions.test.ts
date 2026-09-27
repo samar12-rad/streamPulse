@@ -5,6 +5,7 @@ import {
   setBreakdownDimension,
   setBreakdownSearch,
   setDimensionFilter,
+  setFilters,
   setGroupBy,
   setMetric,
   setPage,
@@ -23,6 +24,8 @@ const onPage3: DashboardState = {
 describe("page reset", () => {
   const resetting: [string, Transition][] = [
     ["range change", setRange("last-24-hours")],
+    ["custom range / zoom", setRange({ from: 0, to: 36_000 })],
+    ["filters replaced", setFilters({ device: ["SmartTV"], cdn: ["Fastly"] })],
     ["filter change", setDimensionFilter("cdn", ["Fastly"])],
     ["filter toggle", toggleFilterValue("device", "SmartTV")],
     ["clear filters", clearFilters],
@@ -85,4 +88,11 @@ it("transitions never mutate their input", () => {
   toggleFilterValue("device", "SmartTV")(onPage3);
   setBreakdownSearch("x")(onPage3);
   expect(onPage3).toEqual(snapshot);
+});
+
+describe("setFilters", () => {
+  it("replaces every dimension and canonicalises the values", () => {
+    const next = setFilters({ cdn: ["Fastly", "Bogus"], device: ["SmartTV"] })(onPage3);
+    expect(next.filters).toEqual({ device: ["SmartTV"], cdn: ["Fastly"] });
+  });
 });

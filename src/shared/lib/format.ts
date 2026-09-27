@@ -95,6 +95,19 @@ export function formatBucket(tsSec: number, granularitySec: number): string {
   return `${formatDateTime(tsSec)} – ${timeOnly.format(new Date((tsSec + granularitySec) * 1000))}`;
 }
 
+/** "Sep 20, 10:00 – 20:00" within one local day, "Sep 23, 23:30 – Sep 24, 09:30" across days. */
+export function formatWindow(from: number, to: number): string {
+  // The end is exclusive, so a window ending at midnight still reads as one day.
+  const sameDay = formatDate(from) === formatDate(to - 1);
+  return sameDay ? `${formatDateTime(from)} – ${timeOnly.format(new Date(to * 1000))}` : `${formatDateTime(from)} – ${formatDateTime(to)}`;
+}
+
+/** 36000 → "10h", 259200 → "3d". */
+export function formatDuration(sec: number): string {
+  const hours = Math.round(sec / 3600);
+  return hours < 48 ? `${hours}h` : `${Math.round(hours / 24)}d`;
+}
+
 /** 3600 → "Hourly", 10800 → "3-hour", 86400 → "Daily". */
 export function formatGranularity(granularitySec: number): string {
   if (granularitySec === DAY_SEC) return "Daily";

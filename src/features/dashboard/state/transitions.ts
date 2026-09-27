@@ -1,4 +1,5 @@
-import type { BreakdownSortField, DatePreset, DimensionKey, MetricKey } from "../../../api/types";
+import { DIMENSIONS, type BreakdownSortField, type DimensionKey, type Filters, type MetricKey } from "../../../api/types";
+import type { RangeSelection } from "../../../shared/lib/timeRange";
 import { normalizeFilterValues, type DashboardState } from "./dashboardState";
 
 /**
@@ -10,12 +11,19 @@ import { normalizeFilterValues, type DashboardState } from "./dashboardState";
 
 export type Transition = (state: DashboardState) => DashboardState;
 
+/** Several changes as one URL update — one history entry, one set of refetches. */
+export const compose =
+  (...transitions: Transition[]): Transition =>
+  (state) =>
+    transitions.reduce((next, transition) => transition(next), state);
+
 function firstPage(state: DashboardState): DashboardState {
   return state.breakdown.page === 1 ? state : { ...state, breakdown: { ...state.breakdown, page: 1 } };
 }
 
+/** A preset, or a custom window from the range picker or a chart zoom. */
 export const setRange =
-  (range: DatePreset): Transition =>
+  (range: RangeSelection): Transition =>
   (state) =>
     firstPage({ ...state, range });
 
@@ -38,6 +46,15 @@ export const toggleFilterValue =
     return setDimensionFilter(dimension, next)(state);
   };
 
+/** Replaces all filters at once, e.g. to jump to an incident's delivery path. */
+export const setFilters =
+  (filters: Filters): Transition =>
+  (state) =>
+    DIMENSIONS.reduce<DashboardState>(
+      (next, dimension) => setDimensionFilter(dimension, filters[dimension] ?? [])(next),
+      firstPage(state)
+    );
+
 export const clearFilters: Transition = (state) => firstPage({ ...state, filters: {} });
 
 export const setMetric =
@@ -49,6 +66,10 @@ export const setMetric =
 export const setGroupBy =
   (groupBy: DimensionKey | null): Transition =>
   (state) => ({ ...state, groupBy });
+
+export const setCompare =
+  (compare: boolean): Transition =>
+  (state) => ({ ...state, compare });
 
 export const setBreakdownDimension =
   (dimension: DimensionKey): Transition =>

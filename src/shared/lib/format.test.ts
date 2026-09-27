@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCompact, formatGranularity, formatMetric } from "./format";
+import { formatCompact, formatDuration, formatGranularity, formatMetric } from "./format";
 
 describe("formatMetric", () => {
   it("formats counts compactly", () => {
@@ -40,5 +40,13 @@ describe("formatGranularity", () => {
     expect(formatGranularity(3600)).toBe("Hourly");
     expect(formatGranularity(3 * 3600)).toBe("3-hour");
     expect(formatGranularity(86_400)).toBe("Daily");
+  });
+});
+
+describe("formatDuration", () => {
+  it("uses hours up to two days, then days", () => {
+    expect(formatDuration(10 * 3600)).toBe("10h");
+    expect(formatDuration(47 * 3600)).toBe("47h");
+    expect(formatDuration(3 * 86_400)).toBe("3d");
   });
 });

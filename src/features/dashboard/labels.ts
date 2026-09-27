@@ -1,5 +1,5 @@
-import { DIMENSIONS, type DatePreset, type DimensionKey, type Filters } from "../../api/types";
-import { presetLabel } from "../../shared/lib/timeRange";
+import { DIMENSIONS, type DimensionKey, type Filters } from "../../api/types";
+import { rangePhrase, type RangeSelection } from "../../shared/lib/timeRange";
 
 export const DIMENSION_LABEL: Record<DimensionKey, string> = {
   device: "Device",
@@ -27,10 +27,10 @@ export function formatDimensionValue(dimension: DimensionKey, value: string): st
 }
 
 /** "Japan + GameConsole in the last 24 hours" — used to make empty states specific. */
-export function describeSelection(filters: Filters, range: DatePreset): string {
+export function describeSelection(filters: Filters, range: RangeSelection): string {
   const parts = DIMENSIONS.flatMap((dimension) =>
     (filters[dimension] ?? []).length ? [(filters[dimension] ?? []).map((v) => formatDimensionValue(dimension, v)).join(" or ")] : []
   );
   const scope = parts.length ? parts.join(" + ") : "all traffic";
-  return `${scope} in the ${presetLabel(range).toLowerCase()}`;
+  return `${scope} ${rangePhrase(range)}`;
 }

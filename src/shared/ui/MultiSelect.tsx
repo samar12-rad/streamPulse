@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { CheckIcon, ChevronDownIcon } from "./icons";
 import styles from "./controls.module.css";
+import { usePopover } from "./usePopover";
 
 export interface MultiSelectOption {
   value: string;
@@ -23,29 +24,8 @@ interface MultiSelectProps {
  * where a missing or empty filter array means no filter.
  */
 export function MultiSelect({ label, selected, onChange, options, placeholder, fallbackLabel }: MultiSelectProps) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const { open, setOpen, rootRef, buttonRef } = usePopover();
   const popoverId = useId();
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false);
-        buttonRef.current?.focus();
-      }
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
 
   const labelFor = (value: string) => options?.find((o) => o.value === value)?.label ?? fallbackLabel?.(value) ?? value;
   const summary = selected.length === 0 ? "All" : selected.length === 1 ? labelFor(selected[0] ?? "") : `${selected.length} selected`;
